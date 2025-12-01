@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-// import androidx.appcompat.app.AppCompatActivity
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
 import com.google.mlkit.vision.segmentation.Segmenter
@@ -19,18 +18,16 @@ import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
-import androidx.fragment.app.FragmentActivity
-
+import androidx.fragment.app.FragmentActivity   // ✅ the only activity type we use
 
 class LocalRembgPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+
     private lateinit var channel: MethodChannel
-    private var activity: AppCompatActivity? = null
+    private var activity: FragmentActivity? = null   // ✅ single, correct type
+
     private lateinit var segmenter: Segmenter
     private var width = 0
     private var height = 0
-    // private lateinit var activity: AppCompatActivity
-    private lateinit var activity: FragmentActivity
-
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(binding.binaryMessenger, "methodChannel.localRembg")
@@ -67,9 +64,7 @@ class LocalRembgPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
 
-            else -> {
-                result.notImplemented()
-            }
+            else -> result.notImplemented()
         }
     }
 
@@ -269,26 +264,32 @@ class LocalRembgPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         channel.setMethodCallHandler(null)
     }
 
-    // override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    //     activity = binding.activity as AppCompatActivity
-    // }
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    val hostActivity = binding.activity
-    if (hostActivity is FragmentActivity) {
-      activity = hostActivity
-    } else {
-      throw IllegalStateException(
-        "LocalRembgPlugin requires a FragmentActivity host"
-      )
-    }
-}
+    // ===== ActivityAware =====
 
-    override fun onDetachedFromActivity() {
-        activity = null
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        val hostActivity = binding.activity
+        if (hostActivity is FragmentActivity) {
+            activity = hostActivity
+        } else {
+            throw IllegalStateException(
+                "LocalRembgPlugin requires a FragmentActivity host"
+            )
+        }
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity as AppCompatActivity
+        val hostActivity = binding.activity
+        if (hostActivity is FragmentActivity) {
+            activity = hostActivity
+        } else {
+            throw IllegalStateException(
+                "LocalRembgPlugin requires a FragmentActivity host"
+            )
+        }
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
